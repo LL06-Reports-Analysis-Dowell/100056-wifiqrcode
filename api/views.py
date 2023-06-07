@@ -8,7 +8,10 @@ import requests
 import qrcode 
 from django.conf import settings
 import os
-
+from PIL import Image
+from django.templatetags.static import static
+import string
+import random
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -31,14 +34,46 @@ class GenerateWifiQr(APIView):
 
         data = f"WIFI:T:{encryption_type};S:{wifi_name};P:{wifi_password};;"
 
-        qr = qrcode.QRCode(version=1, box_size=10, border=4)
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+
         qr.add_data(data)
         qr.make(fit=True)
 
-        qr_image = qr.make_image(fill_color="black", back_color="white")
-        # image_name = wifi_name + ".png"
-        # qr_path = os.path.join(settings.BASE_DIR, 'data/', image_name)
-        qr_image.save("wifi.png")
+        qr_img = qr.make_image(fill_color="black", back_color="white")
 
-        return Response({"info": "QrCode Generated Successfully"},status=status.HTTP_200_OK)
+        # image_path = os.path.join(settings.STATIC_ROOT, "logo.jpg")
+        # image_path = static("logo.jpg")
+        logo_name = "logo.jpg"
+        image_path = f"{settings.BASE_DIR}/static/{logo_name}"
+        image = Image.open(image_path)
+        image_width, image_height = image.size
+
+        max_size = min(qr_img.size) // 6
+
+        if image_width > image_height:
+            new_width = max_size
+            new_height = int((image_height / image_width) * max_size)
+        else:
+            new_width = int((image_width / image_height) * max_size)
+            new_height = max_size
+
+        resized_image = image.resize((new_width, new_height), Image.ANTIALIAS)
+
+        center_x = (qr_img.size[0] - resized_image.size[0]) // 2
+        center_y = (qr_img.size[1] - resized_image.size[1]) // 2
+
+        qr_img.paste(resized_image, (center_x, center_y))
+
+        image_name = f"{''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(12))}.png"
+        qr_path = os.path.join(settings.BASE_DIR, 'media/wifi_qr_codes/', image_name)        
+        qr_img.save(qr_path)
+        # qr_image_url = f"{settings.BASE_DIR}/media/wifi_qr_codes/{image_name}"
+        # print(qr_image_url)
+
+        return Response({"success": "True"},status=status.HTTP_200_OK)
         
