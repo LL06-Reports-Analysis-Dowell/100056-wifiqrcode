@@ -53,9 +53,9 @@ class GenerateWifiQr(APIView):
             )
 
             qr.add_data(data)
-            qr.make(fit=True)
+            qr.make()
 
-            qr_img = qr.make_image(fill_color="black", back_color="white")
+            qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
             #adding logo to the qr code
             # image_path = os.path.join(settings.STATIC_ROOT, "logo.jpg")
@@ -65,7 +65,7 @@ class GenerateWifiQr(APIView):
             image = Image.open(image_path)
             image_width, image_height = image.size
 
-            max_size = min(qr_img.size) // 6
+            max_size = min(qr_img.size) // 5
 
             if image_width > image_height:
                 new_width = max_size
