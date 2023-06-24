@@ -86,8 +86,9 @@ class GenerateWifiQr(APIView):
             qr_img = qr.make_image(fill_color="black", back_color="white").convert('RGB')
 
             #adding logo to the qr code
-            logo_name = "logo.jpg"
-            image_path = f"{settings.BASE_DIR}/static/{logo_name}"
+            #changed name and path
+            logo_name = "wifi-logo.png"
+            image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
             image = Image.open(image_path)
             image_width, image_height = image.size
 
@@ -109,7 +110,8 @@ class GenerateWifiQr(APIView):
             qr_img.paste(resized_image, (center_x, center_y))
 
             image_name = f"{''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(12))}.png"
-            qr_path = os.path.join(settings.BASE_DIR, 'media/wifi_qr_codes/', image_name)        
+            #changed path here
+            qr_path = os.path.join(settings.BASE_DIR, 'media/', image_name)        
             qr_img.save(qr_path)
            
             # qr_image_url = f"{settings.BASE_DIR}/media/wifi_qr_codes/{image_name}"
