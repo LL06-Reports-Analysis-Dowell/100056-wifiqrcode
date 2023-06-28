@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 import qrcode 
 from django.conf import settings
-import os
+import os, base64
 from PIL import Image
 from django.templatetags.static import static
 import string
@@ -35,7 +35,8 @@ class GenerateWifiQr(APIView):
         an_apiview = {
             'wifi_name': 'Name / SSID of the WIFI Network',
             'wifi_password': 'Password of the wifi ',
-            'encryption_type': 'Either WPA (for WPA and WPA2) or WEP or nopass if no encryption type is available'
+            'encryption_type': 'Either WPA (for WPA and WPA2) or WEP or nopass if no encryption type is available',
+            'logo_img': 'Logo for the Wifi qr Code (if none is provided, the default logo will be used)'
         }
             
 
@@ -55,6 +56,7 @@ class GenerateWifiQr(APIView):
             wifi_name = request.data['wifi_name']
             wifi_password = request.data['wifi_password']
             encryption_type =  request.data['encryption_type'].upper()
+            logo_img = request.data.get("logo")
 
             dd = datetime.now()
             time = dd.strftime("%H:%M:%S")
@@ -72,6 +74,24 @@ class GenerateWifiQr(APIView):
 
             data = f"WIFI:T:{encryption_type};S:{wifi_name};P:{wifi_password};;"
 
+            if logo_img:
+                image_data = base64.b64encode(logo_img.read()).decode('utf-8')
+                folder = f"{settings.BASE_DIR}/data/logo"
+                file_name = wifi_name + ".jpg"
+
+                image_path = f"{folder}/{file_name}"
+                path_to_logo = f"{folder}/{file_name}"
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+
+                with open(image_path, 'wb') as file:
+                    file.write(base64.b64decode(image_data))
+
+            else:
+                logo_name = "wifi-logo.jpg"
+                image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
+            
+                
             # generating a QR code image using the `qrcode` library in Python.
             qr = qrcode.QRCode(
                 version=1,
@@ -87,12 +107,10 @@ class GenerateWifiQr(APIView):
 
             #adding logo to the qr code
             #changed name and path
-            logo_name = "wifi-logo.png"
-            image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
             image = Image.open(image_path)
             image_width, image_height = image.size
 
-            max_size = min(qr_img.size) // 5
+            max_size = min(qr_img.size) // 6
 
             if image_width > image_height:
                 new_width = max_size
@@ -113,6 +131,13 @@ class GenerateWifiQr(APIView):
             #changed path here
             qr_path = os.path.join(settings.BASE_DIR, 'media/', image_name)        
             qr_img.save(qr_path)
+
+            new_path = f"/media/{image_name}"
+
+            if os.path.exists(path_to_logo):
+                    os.remove(path_to_logo)
+
+            # return Response({"success": True, 'returned_data': new_path },status=HTTP_200_OK)
            
             # qr_image_url = f"{settings.BASE_DIR}/media/wifi_qr_codes/{image_name}"
             # print(qr_image_url)
@@ -134,7 +159,7 @@ class GenerateWifiQr(APIView):
                     "wifi_password": wifi_password,
                     "function": "function",
                     "wifi_qr_url": qr_path,
-                    "wifi_qr_image": qr_path,
+                    "wifi_qr_image": new_path,
                     "date" : date,
                     "time" : time,
                     "eventId": event_id,
@@ -158,7 +183,7 @@ class GenerateWifiQr(APIView):
             user_res = requests.get("https://100014.pythonanywhere.com/api/createuser/", headers=headers).json()
 
             returned_data = {
-                'qrcode_image': qr_path,
+                'qrcode_image': new_path,
                 'username': user_res["username"],
                 'password': user_res["password"],
                 'role_id':res.json()['inserted_id']

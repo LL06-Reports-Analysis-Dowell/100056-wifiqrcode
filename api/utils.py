@@ -1,9 +1,9 @@
 import requests
 from datetime import datetime
 import json
-import io
-from base64 import b64encode
+import io, base64
 import magic
+from PIL import Image
 
 
 
@@ -52,4 +52,3 @@ def create_event():
     else:
         return json.loads(res.text)['error']
     
-
