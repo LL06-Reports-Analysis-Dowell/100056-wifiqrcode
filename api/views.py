@@ -7,7 +7,6 @@ import qrcode
 from django.conf import settings
 import os, base64
 from PIL import Image
-from django.templatetags.static import static
 import string
 import random
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
@@ -88,7 +87,7 @@ class GenerateWifiQr(APIView):
                     file.write(base64.b64decode(image_data))
 
             else:
-                logo_name = "wifi-logo.png"
+                logo_name = "Wifi_QR_Code.png"
                 image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
             
                 
