@@ -134,8 +134,10 @@ class GenerateWifiQr(APIView):
 
             new_path = f"/media/{image_name}"
 
-            if os.path.exists(path_to_logo):
+            if logo_img:
+                if os.path.exists(path_to_logo):
                     os.remove(path_to_logo)
+                
 
             # return Response({"success": True, 'returned_data': new_path },status=HTTP_200_OK)
            
