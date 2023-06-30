@@ -88,7 +88,7 @@ class GenerateWifiQr(APIView):
                     file.write(base64.b64decode(image_data))
 
             else:
-                logo_name = "wifi-logo.jpg"
+                logo_name = "wifi-logo.png"
                 image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
             
                 
