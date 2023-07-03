@@ -128,10 +128,10 @@ class GenerateWifiQr(APIView):
 
             image_name = f"{''.join(random.choice(string.ascii_lowercase + string.digits) for i in range(12))}.png"
             #changed path here
-            qr_path = os.path.join(settings.BASE_DIR, 'media/', image_name)        
+            qr_path = os.path.join(settings.BASE_DIR, 'data/', image_name)
             qr_img.save(qr_path)
 
-            new_path = f"/media/{image_name}"
+            new_path = settings.MY_BASE_URL + "/data/" + image_name
 
             if logo_img:
                 if os.path.exists(path_to_logo):
