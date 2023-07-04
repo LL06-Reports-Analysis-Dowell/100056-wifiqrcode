@@ -3,6 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.http import HttpResponse
+from rest_framework.decorators import api_view
 import qrcode 
 from django.conf import settings
 import os, base64
@@ -131,7 +133,7 @@ class GenerateWifiQr(APIView):
             qr_path = os.path.join(settings.BASE_DIR, 'data/', image_name)
             qr_img.save(qr_path)
 
-            new_path = settings.MY_BASE_URL + "/data/" + image_name
+            new_path = f"/data/{image_name}"
 
             if logo_img:
                 if os.path.exists(path_to_logo):
@@ -187,7 +189,8 @@ class GenerateWifiQr(APIView):
                 'qrcode_image': new_path,
                 'username': user_res["username"],
                 'password': user_res["password"],
-                'role_id':res.json()['inserted_id']
+                'role_id':res.json()['inserted_id'],
+                'download_url': f'/api/download/{image_name}'
 
             }
 
@@ -196,3 +199,19 @@ class GenerateWifiQr(APIView):
             return Response(
                 {"message": str(e), "success": False}, status=HTTP_400_BAD_REQUEST)
         
+
+
+@api_view(['GET'])
+def DownloadQRCode(self, filename):
+    """
+    The function downloads a QR code image file from a specified path.
+    
+    :param filename: The `filename` parameter is the name of the file that you want to download. It
+    should be a string value
+    :return: an HTTP response object.
+    """
+    path_to_file = f"{settings.BASE_DIR}/data/{filename}"
+    with open(path_to_file, 'rb') as file:
+        response = HttpResponse(file.read(), content_type='application/image')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
