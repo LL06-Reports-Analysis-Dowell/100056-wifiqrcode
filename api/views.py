@@ -18,6 +18,7 @@ import requests
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserSerializer
 from .models import User
+import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class serverStatus(APIView):
@@ -152,7 +153,8 @@ class GenerateWifiQr(APIView):
             event_res = create_event()
             event_id = event_res['event_id']
 
-            save_url = "http://100002.pythonanywhere.com/"
+          
+            save_url = "http://uxlivinglab.pythonanywhere.com/"
             payload = {
                 "cluster": "qr",
                 "database": "qrcode",
@@ -185,6 +187,12 @@ class GenerateWifiQr(APIView):
             }
 
             res = requests.post(save_url, headers=headers, json=payload)
+            print(res.text)
+            response = json.loads(res.text)
+            print(response)
+            print (response["inserted_id"])
+             
+            
 
             #create new user for QR Code
             user_res = requests.get("https://100014.pythonanywhere.com/api/createuser/", headers=headers).json()
@@ -193,7 +201,7 @@ class GenerateWifiQr(APIView):
                 'qrcode_image': new_path,
                 'username': user_res["username"],
                 'password': user_res["password"],
-                'role_id':res.json()['inserted_id'],
+                'role_id': json.loads(res.text),
                 'download_url': f'/api/download/{image_name}'
 
             }
