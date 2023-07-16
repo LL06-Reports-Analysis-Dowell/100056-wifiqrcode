@@ -1,6 +1,6 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import generics, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import HttpResponse
@@ -15,9 +15,6 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from .utils import create_event, processApikey
 from datetime import datetime
 import requests
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import UserSerializer
-from .models import User
 import json
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -255,18 +252,6 @@ class Public(APIView):
         data, and an HTTP status code.
         """
        
-        # try: 
-            #Api key authentication
-            # api_key = request.query_params['api_key']
-            # api_services = request.query_params['api_services']
-            # auth_res = processApikey(api_key, api_services)
-
-            # print(auth_res)
-            # if not auth_res['success'] == "false":
-            #     return Response(auth_res)
-            # else:
-            #     pass
-
         try: 
             
             wifi_name = request.data['wifi_name']
@@ -355,8 +340,8 @@ class Public(APIView):
             qr_path = os.path.join(settings.BASE_DIR, 'data/', image_name)
             qr_img.save(qr_path)
 
-            new_path = f"/data/{image_name}"
-            # new_path = settings.MY_BASE_URL + '/data/' + image_name
+            # new_path = f"/data/{image_name}"
+            new_path = settings.MY_BASE_URL + '/data/' + image_name
 
             if logo_img:
                 if os.path.exists(path_to_logo):
@@ -424,9 +409,4 @@ class Public(APIView):
             return Response(
                 {"message": str(e), "success": False}, status=HTTP_400_BAD_REQUEST)
         
-
-class UserRegister(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = UserSerializer
 
