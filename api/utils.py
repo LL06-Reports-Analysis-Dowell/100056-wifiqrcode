@@ -1,9 +1,7 @@
 import requests
 from datetime import datetime
 import json
-import io, base64
-import magic
-from PIL import Image
+from rest_framework.response import Response
 
 
 
@@ -52,3 +50,13 @@ def create_event():
     else:
         return json.loads(res.text)['error']
     
+
+
+def processApikey(api_key, api_services):
+    url = 'https://100105.pythonanywhere.com/api/v1/process-api-key/'
+    payload = {
+        "api_key": api_key,
+        "api_service_id": api_services
+    }
+    response = requests.post(url, json=payload)
+    return json.loads(response.text)

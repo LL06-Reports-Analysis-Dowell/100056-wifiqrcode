@@ -12,7 +12,7 @@ from PIL import Image
 import string
 import random
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
-from .utils import create_event
+from .utils import create_event, processApikey
 from datetime import datetime
 import requests
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -230,7 +230,6 @@ class Public(APIView):
     Public Api for the Wifi Qr Code Generation
     """
     
-    permission_classes = (IsAuthenticated,)
 
     def get(self, request, format=None):
         
@@ -255,7 +254,21 @@ class Public(APIView):
         :return: a Response object with a JSON payload containing a success flag, a dictionary of returned
         data, and an HTTP status code.
         """
+       
+        # try: 
+            #Api key authentication
+            # api_key = request.query_params['api_key']
+            # api_services = request.query_params['api_services']
+            # auth_res = processApikey(api_key, api_services)
+
+            # print(auth_res)
+            # if not auth_res['success'] == "false":
+            #     return Response(auth_res)
+            # else:
+            #     pass
+
         try: 
+            
             wifi_name = request.data['wifi_name']
             wifi_password = request.data['wifi_password']
             encryption_type =  request.data['encryption_type'].upper()
@@ -264,6 +277,13 @@ class Public(APIView):
             dd = datetime.now()
             time = dd.strftime("%H:%M:%S")
             date = dd.strftime("%d:%m:%Y")
+
+            api_key = request.query_params['api_key']
+            api_services = request.query_params['api_services']
+            auth_res = processApikey(api_key, api_services)
+
+            if auth_res['success'] == False:
+                return Response(auth_res)
 
 
             if encryption_type == "" or encryption_type.lower() == "none" or encryption_type.lower() =="nopass":
@@ -336,7 +356,7 @@ class Public(APIView):
             qr_img.save(qr_path)
 
             new_path = f"/data/{image_name}"
-            #new_path = settings.MY_BASE_URL + '/data/' + image_name
+            # new_path = settings.MY_BASE_URL + '/data/' + image_name
 
             if logo_img:
                 if os.path.exists(path_to_logo):
@@ -351,7 +371,8 @@ class Public(APIView):
             event_res = create_event()
             event_id = event_res['event_id']
 
-            save_url = "http://100002.pythonanywhere.com/"
+          
+            save_url = "http://uxlivinglab.pythonanywhere.com/"
             payload = {
                 "cluster": "qr",
                 "database": "qrcode",
@@ -384,6 +405,7 @@ class Public(APIView):
             }
 
             res = requests.post(save_url, headers=headers, json=payload)
+            
 
             #create new user for QR Code
             user_res = requests.get("https://100014.pythonanywhere.com/api/createuser/", headers=headers).json()
@@ -392,7 +414,7 @@ class Public(APIView):
                 'qrcode_image': new_path,
                 'username': user_res["username"],
                 'password': user_res["password"],
-                'role_id':res.json()['inserted_id'],
+                'role_id': json.loads(res.text),
                 'download_url': f'/api/download/{image_name}'
 
             }
@@ -401,8 +423,7 @@ class Public(APIView):
         except Exception as e:
             return Response(
                 {"message": str(e), "success": False}, status=HTTP_400_BAD_REQUEST)
-
-
+        
 
 class UserRegister(generics.CreateAPIView):
     queryset = User.objects.all()
