@@ -141,6 +141,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+MY_BASE_URL = 'http://127.0.0.1:8000'
 
 ####################
 ## Rest Framework ##

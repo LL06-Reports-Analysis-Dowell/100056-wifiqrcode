@@ -221,15 +221,13 @@ def DownloadQRCode(self, filename):
         return response
     
 
-
 class Public(APIView):
     """
     Public Api for the Wifi Qr Code Generation
     """
-    
 
     def get(self, request, format=None):
-        
+
         """Returns a list of APIView features"""
         an_apiview = {
             'wifi_name': 'Name / SSID of the WIFI Network',
@@ -237,23 +235,25 @@ class Public(APIView):
             'encryption_type': 'Either WPA (for WPA and WPA2) or WEP or nopass if no encryption type is available',
             'logo_img': 'Logo for the Wifi qr Code (if none is provided, the default logo will be used)'
         }
-            
+
 
         return Response({'payload description': an_apiview})
-    
+
+
+
     def post(self, request):
         """
         This function generates a QR code image with wifi credentials and saves it to a database, and also
         creates a new user for the QR code.
-        
+
         :param request: The HTTP request object containing metadata about the request, such as headers and
         data
         :return: a Response object with a JSON payload containing a success flag, a dictionary of returned
         data, and an HTTP status code.
         """
-       
-        try: 
-            
+
+        try:
+
             wifi_name = request.data['wifi_name']
             wifi_password = request.data['wifi_password']
             encryption_type =  request.data['encryption_type'].upper()
@@ -264,12 +264,14 @@ class Public(APIView):
             date = dd.strftime("%d:%m:%Y")
 
             api_key = request.query_params['api_key']
-            api_services = request.query_params['api_services']
-            auth_res = processApikey(api_key, api_services)
+            # api_services = request.query_params['api_services']
+            
+            auth_res = processApikey(api_key)
 
             if auth_res['success'] == False:
                 return Response(auth_res)
-
+            
+            
 
             if encryption_type == "" or encryption_type.lower() == "none" or encryption_type.lower() =="nopass":
                 encryption_type == "nopass"
@@ -296,10 +298,10 @@ class Public(APIView):
                     file.write(base64.b64decode(image_data))
 
             else:
-                logo_name = "Wifi_QR_Code.png"
+                logo_name = "wifi-logo.png"
                 image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
-            
-                
+
+
             # generating a QR code image using the `qrcode` library in Python.
             qr = qrcode.QRCode(
                 version=1,
@@ -340,23 +342,23 @@ class Public(APIView):
             qr_path = os.path.join(settings.BASE_DIR, 'data/', image_name)
             qr_img.save(qr_path)
 
-            # new_path = f"/data/{image_name}"
-            new_path = settings.MY_BASE_URL + '/data/' + image_name
+            new_path = settings.MY_BASE_URL + "/data/" + image_name
+            #new_path = f"/data/{image_name}"
 
             if logo_img:
                 if os.path.exists(path_to_logo):
                     os.remove(path_to_logo)
-                
+
 
             # return Response({"success": True, 'returned_data': new_path },status=HTTP_200_OK)
-           
+
             # qr_image_url = f"{settings.BASE_DIR}/media/wifi_qr_codes/{image_name}"
             # print(qr_image_url)
 
             event_res = create_event()
             event_id = event_res['event_id']
 
-          
+            #save_url = "http://100002.pythonanywhere.com/"
             save_url = "http://uxlivinglab.pythonanywhere.com/"
             payload = {
                 "cluster": "qr",
@@ -369,7 +371,7 @@ class Public(APIView):
                 "field": {
                     "wifi_ssid": wifi_name,
                     "wifi_password": wifi_password,
-                    "function": "function",
+                    "function": "Wifi QR Code API",
                     "wifi_qr_url": qr_path,
                     "wifi_qr_image": new_path,
                     "date" : date,
@@ -390,7 +392,7 @@ class Public(APIView):
             }
 
             res = requests.post(save_url, headers=headers, json=payload)
-            
+            ret_res = json.loads(res.text)
 
             #create new user for QR Code
             user_res = requests.get("https://100014.pythonanywhere.com/api/createuser/", headers=headers).json()
@@ -399,8 +401,8 @@ class Public(APIView):
                 'qrcode_image': new_path,
                 'username': user_res["username"],
                 'password': user_res["password"],
-                'role_id': json.loads(res.text),
-                'download_url': f'/api/download/{image_name}'
+                'role_id':ret_res,
+                'download_url': f'{settings.MY_BASE_URL}/wifi/download/{image_name}'
 
             }
 
@@ -408,5 +410,4 @@ class Public(APIView):
         except Exception as e:
             return Response(
                 {"message": str(e), "success": False}, status=HTTP_400_BAD_REQUEST)
-        
 

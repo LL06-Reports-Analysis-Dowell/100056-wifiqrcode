@@ -52,14 +52,28 @@ def create_event():
     
 
 
-def processApikey(api_key, api_services):
-  # This function is making a POST request to the specified URL with a payload
-  # containing an API key and an API service ID. The purpose of this request is to process the API key
-  # and determine if it is valid for the specified API service.
-    url = 'https://100105.pythonanywhere.com/api/v1/process-api-key/'
+# def processApikey(api_key):
+#   # This function is making a POST request to the specified URL with a payload
+#   # containing an API key and an API service ID. The purpose of this request is to process the API key
+#   # and determine if it is valid for the specified API service.
+#     url = f'https://100105.pythonanywhere.com/api/v3/process-services/?type=api_service%api_key={api_key}'
+#     print(api_key)
+#     print(url)
+#     payload = {
+#         "service_id": "DOWELL10014"
+#     }
+#     response = requests.post(url, json=payload)
+#     print(response)
+#     print(json.loads(response.text))
+#     return json.loads(response.text)
+
+def processApikey(api_key):
+    """ This function is making a POST request to the specified URL with a payload
+    containing an API key and an API service ID. The purpose of this request is to process the API key
+    and determine if it is valid for the specified API service."""
+    url = f'https://100105.pythonanywhere.com/api/v3/process-services/?type=api_service&api_key={api_key}'
     payload = {
-        "api_key": api_key,
-        "api_service_id": api_services
+        "service_id" : "DOWELL10014"
     }
     response = requests.post(url, json=payload)
     return json.loads(response.text)
