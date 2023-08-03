@@ -59,6 +59,8 @@ class GenerateWifiQr(APIView):
             wifi_password = request.data['wifi_password']
             encryption_type =  request.data['encryption_type'].upper()
             logo_img = request.data.get("logo")
+            userID = request.data['userID']
+            client_admin_id = request.data['client_admin_id']
 
             dd = datetime.now()
             time = dd.strftime("%H:%M:%S")
@@ -90,7 +92,7 @@ class GenerateWifiQr(APIView):
                     file.write(base64.b64decode(image_data))
 
             else:
-                logo_name = "Wifi_QR_Code.png"
+                logo_name = "wifi-logo.png"
                 image_path = f"{settings.BASE_DIR}/data/logo/{logo_name}"
             
                 
@@ -172,7 +174,9 @@ class GenerateWifiQr(APIView):
                     "name": "",
                     "email": "",
                     "subject": "",
-                    "content": ""
+                    "content": "",
+                    "userID": userID,
+                    "client_admin_id": client_admin_id
                 },
                 "update_field": {
                 },
