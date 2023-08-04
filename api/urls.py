@@ -6,4 +6,5 @@ urlpatterns = [
     path('generate_qr', GenerateWifiQr.as_view()),
     path('download/<str:filename>', DownloadQRCode),
     path('public', Public.as_view()),
+    path('fetchqrcode/', FetchQrCodes)
 ]
